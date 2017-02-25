@@ -63,13 +63,13 @@ C_S = ''
 A_T_K = ''
 A_T_S =''
 
-
 def get_block_list():
 	
 	bucket_name = os.environ.get('BUCKET_NAME',
                                app_identity.get_default_gcs_bucket_name())
 	gcs_file = gcs.open('/'+bucket_name + '/block_list.txt')
 	content = gcs_file.read()
+	gcs_file.close()
 	return blocked + content.split()
 
 def update_block_list(username):
@@ -78,15 +78,17 @@ def update_block_list(username):
 	gcs_file = gcs.open('/'+bucket_name + '/block_list.txt')
 	content = gcs_file.read()
 	gcs_file.close()
-	gcs_file = gcs.open('/'+bucket_name + '/block_list.txt', 'w')
+	gcs_file = gcs.open('/'+bucket_name + '/block_list.txt', 'w', content_type='text/plain')
 	if len(content) > 1000:
-		gcs_file.write('');
+		gcs_file.write(username)
+		gcs_file.close()
+		return
 
 	gcs_file.write(content + ' ' + username)
+	gcs_file.close()
 	
 
 def do_retweet():
-	
 	tweepyAuth = tweepy.OAuthHandler(C_K, C_S)
 	tweepyAuth.set_access_token(A_T_K, A_T_S)
 	tweepyAPI = tweepy.API(tweepyAuth)
